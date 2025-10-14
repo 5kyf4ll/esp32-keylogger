@@ -1,0 +1,13 @@
+# Target labels
+ bootloader
+# Source files and their labels
+D:/Documentos/GitHub/esp32-keylogger/Receptor/build/CMakeFiles/bootloader
+D:/Documentos/GitHub/esp32-keylogger/Receptor/build/CMakeFiles/bootloader.rule
+D:/Documentos/GitHub/esp32-keylogger/Receptor/build/CMakeFiles/bootloader-complete.rule
+D:/Documentos/GitHub/esp32-keylogger/Receptor/build/bootloader-prefix/src/bootloader-stamp/bootloader-build.rule
+D:/Documentos/GitHub/esp32-keylogger/Receptor/build/bootloader-prefix/src/bootloader-stamp/bootloader-configure.rule
+D:/Documentos/GitHub/esp32-keylogger/Receptor/build/bootloader-prefix/src/bootloader-stamp/bootloader-download.rule
+D:/Documentos/GitHub/esp32-keylogger/Receptor/build/bootloader-prefix/src/bootloader-stamp/bootloader-install.rule
+D:/Documentos/GitHub/esp32-keylogger/Receptor/build/bootloader-prefix/src/bootloader-stamp/bootloader-mkdir.rule
+D:/Documentos/GitHub/esp32-keylogger/Receptor/build/bootloader-prefix/src/bootloader-stamp/bootloader-patch.rule
+D:/Documentos/GitHub/esp32-keylogger/Receptor/build/bootloader-prefix/src/bootloader-stamp/bootloader-update.rule
