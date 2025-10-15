@@ -55,5 +55,5 @@ Antes de ejecutar cualquier código, asegúrate de tener permiso y de cumplir la
 ---
 
 ## Video demostrativo
-[Mira el tutorial en YouTube](https://youtube.com/)
+<a href="https://youtube.com/tu-video" target="_blank">Mira el tutorial en YouTube</a>
 
