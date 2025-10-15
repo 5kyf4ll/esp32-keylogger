@@ -1,6 +1,6 @@
 # esp32-keylogger
 
-> Proyecto educativo y de laboratorio: demostrador de captura y reenvio de eventos de teclado usando 2 ESP32 S3 y un servicio colector en Python.  
+> Proyecto educativo y de laboratorio: demostrador de captura y reenvio de eventos de teclado usando 2 ESP32-S3 y un servicio colector en Python.  
 > Estructura pensada para aprendizaje, pruebas controladas y auditoria interna.
 
 ---
@@ -12,6 +12,7 @@
 2. Copia la carpeta `receptor/` a tu workspace IDF.  
 3. Agrega la dependencia HID (desde la raiz del proyecto receptor):
    ```bash
+   cd receptor
    idf.py add-dependency "espressif/usb_host_hid"
 4. Conecta tu ESP32-S3 (modelo con soporte USB OTG) y compila/fluye el firmware:
    ```bash
@@ -42,7 +43,9 @@
 ---
 
 ## Aviso importante - Uso responsable
-Este proyecto es **exclusivamente** para fines educativos, pruebas en laboratorio y auditoria interna.  
-NO debe usarse para espiar, monitorizar o capturar datos en equipos o redes sin consentimiento expreso del propietario. El autor no se responsabiliza por el uso indebido. Antes de ejecutar cualquier codigo, asegurate de tener permiso y de cumplir la ley local y las politicas de tu organizacion.
+Este proyecto es **exclusivamente** para fines educativos, pruebas en laboratorio y auditoría interna.
+**No debe usarse** para espiar, monitorizar o capturar datos en equipos o redes sin consentimiento expreso del propietario.
+El autor **no se responsabiliza** por el uso indebido.
+Antes de ejecutar cualquier código, asegúrate de tener permiso y de cumplir la ley local y las políticas de tu organización.
 
 ---
