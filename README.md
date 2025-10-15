@@ -5,6 +5,10 @@
 
 ---
 
+##Diagrama de conexión
+A continuación se muestra el esquema básico del proyecto, donde se observa la conexión entre el teclado, el hub USB, el ESP32-S3 receptor, el ESP32-S3 emisor y la computadora.
+
+---
 ## Compilar y ejecutar
 
 ### 1) Receptor (ESP-IDF)
@@ -49,3 +53,7 @@ El autor **no se responsabiliza** por el uso indebido.
 Antes de ejecutar cualquier código, asegúrate de tener permiso y de cumplir la ley local y las políticas de tu organización.
 
 ---
+
+## Video demostrativo
+[Mira el tutorial en YouTube](https://youtube.com/)
+
