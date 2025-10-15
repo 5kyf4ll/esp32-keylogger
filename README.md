@@ -5,7 +5,7 @@
 
 ---
 
-##Diagrama de conexión
+## Diagrama de conexión
 A continuación se muestra el esquema básico del proyecto, donde se observa la conexión entre el teclado, el hub USB, el ESP32-S3 receptor, el ESP32-S3 emisor y la computadora.
 
 ---
