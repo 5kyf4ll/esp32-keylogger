@@ -9,6 +9,20 @@
 A continuación se muestra el esquema básico del proyecto, donde se observa la conexión entre el teclado, el hub USB, el ESP32-S3 receptor, el ESP32-S3 emisor y la computadora.
 
 ---
+
+## Diagrama de cableado entre ESP32-S3
+
+Para la comunicación entre el **receptor** y el **emisor**, se usa una conexión serial cruzada entre los GPIO:
+
+| Receptor (ESP32-S3) | Emisor (ESP32-S3) |
+|----------------------|-------------------|
+| GPIO17 (TX)          | GPIO18 (RX)       |
+| GPIO18 (RX)          | GPIO17 (TX)       |
+| GND                  | GND               |
+<img width="989" height="754" alt="image" src="https://github.com/user-attachments/assets/9ef88235-eeed-4213-b278-3b0f82be8a5a" />
+
+---
+
 ## Compilar y ejecutar
 
 ### 1) Receptor (ESP-IDF)
