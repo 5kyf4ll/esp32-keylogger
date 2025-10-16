@@ -60,14 +60,13 @@ Para la comunicación entre el **receptor** y el **emisor**, se usa una conexió
 
 ---
 
+## Video demostrativo
+<a href="https://youtube.com/" target="_blank">Mira el tutorial en YouTube</a>
+
+---
+
 ## Aviso importante - Uso responsable
 Este proyecto es **exclusivamente** para fines educativos, pruebas en laboratorio y auditoría interna.
 **No debe usarse** para espiar, monitorizar o capturar datos en equipos o redes sin consentimiento expreso del propietario.
 El autor **no se responsabiliza** por el uso indebido.
 Antes de ejecutar cualquier código, asegúrate de tener permiso y de cumplir la ley local y las políticas de tu organización.
-
----
-
-## Video demostrativo
-<a href="https://youtube.com/" target="_blank">Mira el tutorial en YouTube</a>
-
