@@ -1,7 +1,7 @@
 {
     "version":            "1.2",
     "project_name":       "Receptor",
-    "project_version":    "90ce3f0",
+    "project_version":    "a69bb5d-dirty",
     "project_path":       "D:/Documentos/GitHub/esp32-keylogger/Receptor",
     "idf_path":           "C:/Users/5kyf4ll/esp/v5.5/esp-idf",
     "build_dir":          "D:/Documentos/GitHub/esp32-keylogger/Receptor/build",
