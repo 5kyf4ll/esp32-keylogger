@@ -2,6 +2,7 @@
 #include <string.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/queue.h"
 #include "driver/uart.h"
 #include "usb/usb_host.h"
 #include "usb/hid_host.h"
@@ -24,6 +25,9 @@
 #define CMD_TAB   0x09
 #define CMD_CAPS  0x14
 #define CMD_GUI   0x90
+
+// Cola para mantener el orden de caracteres enviados por UART
+static QueueHandle_t uart_queue;
 
 // AltGr special character mapping
 typedef struct {
@@ -53,6 +57,7 @@ static const uint8_t keycode2ascii[57][2] = {
     {'`','~'},{',','<'},{'.','>'},{'/','?'}
 };
 
+// ===== UART Inicialización =====
 static void uart_init(void) {
     const uart_config_t uart_config = {
         .baud_rate = 9600,
@@ -61,41 +66,56 @@ static void uart_init(void) {
         .stop_bits = UART_STOP_BITS_1,
         .flow_ctrl = UART_HW_FLOWCTRL_DISABLE
     };
-
     uart_driver_install(UART_PORT, BUF_SIZE, 0, 0, NULL, 0);
     uart_param_config(UART_PORT, &uart_config);
     uart_set_pin(UART_PORT, TX_PIN, RX_PIN, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE);
+
+    // Crear cola para mantener orden en envíos UART
+    uart_queue = xQueueCreate(64, sizeof(char));
 }
 
-static void send_char(char c) {
-    uart_write_bytes(UART_PORT, &c, 1);
+// ===== Tarea de envío UART ordenado =====
+static void uart_task(void *arg) {
+    char c;
+    while (1) {
+        if (xQueueReceive(uart_queue, &c, portMAX_DELAY)) {
+            uart_write_bytes(UART_PORT, &c, 1);
+        }
+    }
 }
 
+// ===== Encolar salida UART =====
+static inline void send_char(char c) {
+    if (uart_queue) {
+        xQueueSend(uart_queue, &c, portMAX_DELAY);
+    }
+}
+
+// ===== Procesamiento de teclas =====
 static void handle_key(uint8_t modifier, uint8_t key_code) {
     switch(key_code) {
         case HID_KEY_ESCAPE:    send_char(CMD_ESC); return;
         case HID_KEY_TAB:       send_char(CMD_TAB); return;
         case HID_KEY_CAPS_LOCK: send_char(CMD_CAPS); return;
-        case HID_KEY_BACKSPACE: send_char('\b');    return; // ASCII backspace
-        case HID_KEY_ENTER:     send_char('\n');    return; // ASCII newline
+        case HID_KEY_BACKSPACE: send_char('\b');    return;
+        case HID_KEY_ENTER:     send_char('\n');    return;
     }
 
     // AltGr handling
     if ((modifier & HID_RIGHT_ALT) != 0) {
         for (int i = 0; i < altgr_table_size; i++) {
             if (key_code == altgr_table[i].keycode) {
-                char c = altgr_table[i].symbol;
-                send_char(c);
+                send_char(altgr_table[i].symbol);
                 return;
             }
         }
     }
 
     // Normal key handling
-    if(key_code < 57) {
+    if (key_code < 57) {
         bool shift = (modifier & (HID_LEFT_SHIFT | HID_RIGHT_SHIFT)) != 0;
         char c = keycode2ascii[key_code][shift ? 1 : 0];
-        if(c) send_char(c);
+        if (c) send_char(c);
     }
 }
 
@@ -114,9 +134,9 @@ static void process_keys(hid_keyboard_input_report_boot_t *report) {
     }
 
     // Process normal keys (keydown detection)
-    for(int i = 0; i < HID_KEYBOARD_KEY_MAX; i++) {
+    for (int i = 0; i < HID_KEYBOARD_KEY_MAX; i++) {
         uint8_t key = report->key[i];
-        if(key > HID_KEY_ERROR_UNDEFINED) {
+        if (key > HID_KEY_ERROR_UNDEFINED) {
             bool already_pressed = false;
             for (int j = 0; j < HID_KEYBOARD_KEY_MAX; j++) {
                 if (key == prev_report.key[j]) {
@@ -124,34 +144,30 @@ static void process_keys(hid_keyboard_input_report_boot_t *report) {
                     break;
                 }
             }
-            if (!already_pressed) {
-                handle_key(mods, key);
-            }
+            if (!already_pressed) handle_key(mods, key);
         }
     }
 
     prev_report = *report;
 }
 
+// ===== Callbacks del host USB =====
 static void hid_host_interface_callback(hid_host_device_handle_t dev_handle,
                                         const hid_host_interface_event_t event,
                                         void *arg) {
-
-    if(event == HID_HOST_INTERFACE_EVENT_INPUT_REPORT) {
+    if (event == HID_HOST_INTERFACE_EVENT_INPUT_REPORT) {
         uint8_t data[64] = {0};
         size_t len = 0;
         hid_host_device_get_raw_input_report_data(dev_handle, data, sizeof(data), &len);
-        if(len < sizeof(hid_keyboard_input_report_boot_t)) return;
-
-        process_keys((hid_keyboard_input_report_boot_t *)data);
+        if (len >= sizeof(hid_keyboard_input_report_boot_t))
+            process_keys((hid_keyboard_input_report_boot_t *)data);
     }
 }
 
 void hid_host_device_event(hid_host_device_handle_t hid_dev,
                            const hid_host_driver_event_t event,
                            void *arg) {
-
-    if(event == HID_HOST_DRIVER_EVENT_CONNECTED) {
+    if (event == HID_HOST_DRIVER_EVENT_CONNECTED) {
         hid_host_device_config_t dev_config = {
             .callback = hid_host_interface_callback,
             .callback_arg = NULL
@@ -161,6 +177,7 @@ void hid_host_device_event(hid_host_device_handle_t hid_dev,
     }
 }
 
+// ===== Tarea principal USB =====
 static void usb_task(void *arg) {
     const usb_host_config_t host_config = {.skip_phy_setup = false, .intr_flags = ESP_INTR_FLAG_LEVEL1};
     usb_host_install(&host_config);
@@ -175,15 +192,17 @@ static void usb_task(void *arg) {
     };
     hid_host_install(&hid_cfg);
 
-    while(1) {
+    while (1) {
         uint32_t events;
         usb_host_lib_handle_events(portMAX_DELAY, &events);
     }
 }
 
+// ===== app_main =====
 void app_main(void) {
     uart_init();
-    printf("UART initialized on pins TX:%d, RX:%d\n", TX_PIN, RX_PIN);
+    printf("UART initialized on TX:%d, RX:%d\n", TX_PIN, RX_PIN);
     xTaskCreate(usb_task, "usb_task", 4096, NULL, 5, NULL);
-    while(1) vTaskDelay(pdMS_TO_TICKS(1000));
+    xTaskCreate(uart_task, "uart_task", 2048, NULL, 4, NULL);  // nueva tarea para envío ordenado
+    while (1) vTaskDelay(pdMS_TO_TICKS(1000));
 }
