@@ -62,7 +62,7 @@ Para la comunicación entre el **receptor** y el **emisor**, se usa una conexió
 ---
 
 ## Video demostrativo
-<a href="https://youtube.com/" target="_blank">Mira el tutorial en YouTube</a>
+<a href="https://youtu.be/_ogxft_biew" target="_blank">Mira el tutorial en YouTube</a>
 
 ---
 
