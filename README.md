@@ -1,12 +1,22 @@
 # esp32-keylogger
 
-> Proyecto educativo y de laboratorio: demostrador de captura y reenvio de eventos de teclado usando 2 ESP32-S3 y un servicio colector en Python.  
-> Estructura pensada para aprendizaje, pruebas controladas y auditoria interna.
+> Proyecto educativo y de laboratorio: demostrador de captura y reenvio de eventos de teclado usando 2 ESP32-S3 y un bot de Telegram.  
+> Diseño pensado para aprendizaje, pruebas controladas y auditoría interna en entornos autorizados.
+
+---
+
+## Arquitectura del proyecto
+
+El sistema captura los eventos HID del teclado real mediante un **ESP32-S3 receptor**, los reenvía por serial cruzado al **ESP32-S3 emisor**, y este finalmente envía las pulsaciones a un **bot de Telegram**, sin necesidad de servidor propio.
+
+**Componentes del sistema:**
+- ESP32-S3 Receptor → Captura HID por USB-OTG.  
+- ESP32-S3 Emisor → Recibe los datos por UART y los envía a Telegram.  
+- Bot de Telegram → Recibe los logs en tiempo real.
 
 ---
 
 ## Diagrama de conexión
-A continuación se muestra el esquema básico del proyecto, donde se observa la conexión entre el teclado, el hub USB, el ESP32-S3 receptor, el ESP32-S3 emisor y la computadora.
 ![diagrama](https://github.com/user-attachments/assets/3898985c-a1cf-4c78-8c4a-816125e83890)
 
 ---
@@ -21,6 +31,19 @@ Para la comunicación entre el **receptor** y el **emisor**, se usa una conexió
 | GPIO18 (RX)          | GPIO17 (TX)       |
 | GND                  | GND               |
 <img width="989" height="754" alt="image" src="https://github.com/user-attachments/assets/9ef88235-eeed-4213-b278-3b0f82be8a5a" />
+
+---
+
+## Configuración del bot de Telegram
+
+1. Abre Telegram y busca **@BotFather**.  
+2. Ejecuta `/newbot` y sigue los pasos.  
+3. Copia el **token del bot**.  
+4. En el ESP32-S3 *emisor*, configura:
+   - Token del bot  
+   - ID de chat (obténlo hablando con `@userinfobot`)
+
+El emisor enviará cada tecla capturada al chat configurado.
 
 ---
 
@@ -42,28 +65,15 @@ Para la comunicación entre el **receptor** y el **emisor**, se usa una conexió
 1. Abre la carpeta `emisor/` en Arduino IDE.
 2. Selecciona la placa “ESP32-S3 Dev Module” o el modelo exacto que uses. 
 3. Configura el puerto correcto y sube el sketch directamente al dispositivo.
-
-### 3) Colector (Python)
-1. Asegurate de tener Python 3.8 o superior instalado.
-2. Abre la carpeta `Colector/`.
-   ```bash
-   cd colector
-4. Crea y activa tu entorno virtual:
-   ```bash
-   python3 -m venv env
-   source env/bin/activate
-5. Instala las dependencias:
-   ```bash
-   pip install -r requirements.txt
-6. Ejecuta el colector:
-   ```bash
-   python3 keylogger.py
-
+   - **SSID** y **password** de tu red WiFi  
+   - **Token del bot** de Telegram  
+   - **Chat ID** donde recibirás los mensajes
+4. Sube el sketch al dispositivo.
 ---
 
 ## Video demostrativo
 <a href="https://youtu.be/_ogxft_biew" target="_blank">Mira el tutorial en YouTube</a>
-
+(Me falta actualizar el video)
 ---
 
 ## Aviso importante - Uso responsable
