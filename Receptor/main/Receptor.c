@@ -16,6 +16,8 @@
 // HID key definitions
 #define HID_KEY_ENTER       0x28
 #define HID_KEY_ESCAPE      0x29
+
+
 #define HID_KEY_BACKSPACE   0x2A
 #define HID_KEY_TAB         0x2B
 #define HID_KEY_CAPS_LOCK   0x39
