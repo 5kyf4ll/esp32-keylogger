@@ -15,12 +15,12 @@ USBHIDKeyboard Keyboard;
 #define BAUD_RATE 9600
 
 // ====== Configuracion WiFi ======
-const char* ssid     = ""; // Nombre del WiFi
-const char* password = ""; // Clave del WiFi
+const char* ssid     = "Laboratorio"; // Nombre del WiFi
+const char* password = "12345678"; // Clave del WiFi
 
 // ====== Configuracion de Telegram ======
-String botToken = ""; // Token del bot de telegram
-String chatID   = ""; // ID del chat
+String botToken = "7996107175:AAH1nNcRISjnjE-NxskvorE16llBLXVy9Vs"; // Token del bot de telegram
+String chatID   = "2051288294"; // ID del chat
 
 // ====== Comandos especiales ======
 #define CMD_ESC        0x1B
@@ -30,6 +30,35 @@ String chatID   = ""; // ID del chat
 #define CMD_ENTER      0x0A
 #define CMD_GUI        0x90
 #define CMD_ALTGR      0x92
+
+// llegada de conbinacion de ctrl
+#define CMD_CTRL_C 0xA1
+#define CMD_CTRL_V 0xA2
+#define CMD_CTRL_X 0xA3
+#define CMD_CTRL_Z 0xA4
+
+// ====== Comandos de flechas ======
+#define CMD_ARROW_UP     0xA5
+#define CMD_ARROW_DOWN   0xA6
+#define CMD_ARROW_LEFT   0xA7
+#define CMD_ARROW_RIGHT  0xA8
+// ====== Keypad ======
+#define KP_0       0xB0
+#define KP_1       0xB1
+#define KP_2       0xB2
+#define KP_3       0xB3
+#define KP_4       0xB4
+#define KP_5       0xB5
+#define KP_6       0xB6
+#define KP_7       0xB7
+#define KP_8       0xB8
+#define KP_9       0xB9
+#define KP_DOT     0xBA
+#define KP_ENTER   0xBB
+#define KP_PLUS    0xBC
+#define KP_MINUS   0xBD
+#define KP_MULT    0xBE
+#define KP_DIV     0xBF
 
 // ====== Tabla de equivalencias ======
 typedef struct {
@@ -124,6 +153,13 @@ void pressAndRelease(uint8_t key) {
 }
 
 bool isSpecialCommand(uint8_t cmd) {
+
+  if (cmd == CMD_CTRL_C || cmd == CMD_CTRL_V || cmd == CMD_CTRL_X || cmd == CMD_CTRL_Z)
+    return true;
+  // nuevas flechas
+  if (cmd == CMD_ARROW_UP || cmd == CMD_ARROW_DOWN ||
+      cmd == CMD_ARROW_LEFT || cmd == CMD_ARROW_RIGHT)
+    return true;
   if (cmd == CMD_GUI || cmd == CMD_ALTGR) return true;
 
   for (int i = 0; i < commandCount; i++) {
@@ -133,6 +169,80 @@ bool isSpecialCommand(uint8_t cmd) {
 }
 
 void handleSpecialCommand(uint8_t cmd) {
+  // ===== Keypad =====
+  switch (cmd) {
+    case KP_0:     pressAndRelease(KEY_KP_0); sendLater("KP_0"); return;
+    case KP_1:     pressAndRelease(KEY_KP_1); sendLater("KP_1"); return;
+    case KP_2:     pressAndRelease(KEY_KP_2); sendLater("KP_2"); return;
+    case KP_3:     pressAndRelease(KEY_KP_3); sendLater("KP_3"); return;
+    case KP_4:     pressAndRelease(KEY_KP_4); sendLater("KP_4"); return;
+    case KP_5:     pressAndRelease(KEY_KP_5); sendLater("KP_5"); return;
+    case KP_6:     pressAndRelease(KEY_KP_6); sendLater("KP_6"); return;
+    case KP_7:     pressAndRelease(KEY_KP_7); sendLater("KP_7"); return;
+    case KP_8:     pressAndRelease(KEY_KP_8); sendLater("KP_8"); return;
+    case KP_9:     pressAndRelease(KEY_KP_9); sendLater("KP_9"); return;
+
+    case KP_DOT:   pressAndRelease(KEY_KP_DOT); sendLater("KP_DOT"); return;
+    case KP_ENTER: pressAndRelease(KEY_KP_ENTER); sendLater("KP_ENTER"); return;
+    case KP_PLUS:  pressAndRelease(KEY_KP_PLUS); sendLater("KP_PLUS"); return;
+    case KP_MINUS: pressAndRelease(KEY_KP_MINUS); sendLater("KP_MINUS"); return;
+    case KP_MULT:  pressAndRelease(KEY_KP_ASTERISK); sendLater("KP_MULT"); return;
+    case KP_DIV:   pressAndRelease(KEY_KP_SLASH); sendLater("KP_DIV"); return;
+  }
+
+  if (cmd == CMD_CTRL_C){
+    Keyboard.press(KEY_LEFT_CTRL);
+    Keyboard.press('c');
+    Keyboard.release('c');
+    Keyboard.release(KEY_LEFT_CTRL);
+    sendLater("CTRL+c");
+    return;
+  }
+  if (cmd == CMD_CTRL_V){
+    Keyboard.press(KEY_LEFT_CTRL);
+    Keyboard.press('v');
+    Keyboard.release('v');
+    Keyboard.release(KEY_LEFT_CTRL);
+    sendLater("CTRL+v");
+    return;
+  }
+  if (cmd == CMD_CTRL_X){
+    Keyboard.press(KEY_LEFT_CTRL);
+    Keyboard.press('x');
+    Keyboard.release('x');
+    Keyboard.release(KEY_LEFT_CTRL);
+    sendLater("CTRL+x");
+    return;
+  }
+  if (cmd == CMD_CTRL_Z){
+    Keyboard.press(KEY_LEFT_CTRL);
+    Keyboard.press('z');
+    Keyboard.release('z');
+    Keyboard.release(KEY_LEFT_CTRL);
+    sendLater("CTRL+z");
+    return;
+  }
+    // ===== Flechas =====
+  if (cmd == CMD_ARROW_UP) {
+    pressAndRelease(KEY_UP_ARROW);
+    sendLater("UP");
+    return;
+  }
+  if (cmd == CMD_ARROW_DOWN) {
+    pressAndRelease(KEY_DOWN_ARROW);
+    sendLater("DOWN");
+    return;
+  }
+  if (cmd == CMD_ARROW_LEFT) {
+    pressAndRelease(KEY_LEFT_ARROW);
+    sendLater("LEFT");
+    return;
+  }
+  if (cmd == CMD_ARROW_RIGHT) {
+    pressAndRelease(KEY_RIGHT_ARROW);
+    sendLater("RIGHT");
+    return;
+  }
   for (int i = 0; i < commandCount; i++) {
     if (cmd == commandMap[i].command) {
       pressAndRelease(commandMap[i].keycode);

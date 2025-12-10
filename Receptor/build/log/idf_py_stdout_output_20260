@@ -1,0 +1,74 @@
+Command: ninja all
+[1/9] Performing build step for 'bootloader'
+[1/1] C:\WINDOWS\system32\cmd.exe /C "cd /D D:\Documentos\GitHub\esp32-keylogger\Receptor\build\bootloader\esp-idf\esptool_py && C:\Users\5kyf4ll\.espressif\python_env\idf5.5_py3.11_env\Scripts\python.exe C:/Users/5kyf4ll/esp/v5.5/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x0 D:/Documentos/GitHub/esp32-keylogger/Receptor/build/bootloader/bootloader.bin"
+Bootloader binary size 0x5260 bytes. 0x2da0 bytes (36%) free.
+[2/9] No install step for 'bootloader'
+[3/9] Completed 'bootloader'
+[4/9] Building C object esp-idf/main/CMakeFiles/__idf_main.dir/Receptor.c.obj
+FAILED: esp-idf/main/CMakeFiles/__idf_main.dir/Receptor.c.obj 
+ccache C:\Users\5kyf4ll\.espressif\tools\xtensa-esp-elf\esp-14.2.0_20241119\xtensa-esp-elf\bin\xtensa-esp32s3-elf-gcc.exe -DESP_PLATFORM -DIDF_VER=\"v5.5\" -DSOC_MMU_PAGE_SIZE=CONFIG_MMU_PAGE_SIZE -DSOC_XTAL_FREQ_MHZ=CONFIG_XTAL_FREQ -D_GLIBCXX_HAVE_POSIX_SEMAPHORE -D_GLIBCXX_USE_POSIX_SEMAPHORE -D_GNU_SOURCE -D_POSIX_READER_WRITER_LOCKS -ID:/Documentos/GitHub/esp32-keylogger/Receptor/build/config -ID:/Documentos/GitHub/esp32-keylogger/Receptor/main -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/newlib/platform_include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/freertos/config/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/freertos/config/include/freertos -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/freertos/config/xtensa/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/freertos/FreeRTOS-Kernel/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/freertos/FreeRTOS-Kernel/portable/xtensa/include/freertos -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/freertos/esp_additions/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_hw_support/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_hw_support/include/soc -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_hw_support/include/soc/esp32s3 -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_hw_support/dma/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_hw_support/ldo/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_hw_support/debug_probe/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_hw_support/mspi_timing_tuning/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_hw_support/mspi_timing_tuning/tuning_scheme_impl/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_hw_support/power_supply/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_hw_support/port/esp32s3/. -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_hw_support/port/esp32s3/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_hw_support/mspi_timing_tuning/port/esp32s3/. -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_hw_support/mspi_timing_tuning/port/esp32s3/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/heap/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/heap/tlsf -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/log/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/soc/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/soc/esp32s3 -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/soc/esp32s3/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/soc/esp32s3/register -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/hal/platform_port/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/hal/esp32s3/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/hal/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_rom/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_rom/esp32s3/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_rom/esp32s3/include/esp32s3 -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_rom/esp32s3 -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_common/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_system/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_system/port/soc -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_system/port/include/private -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/xtensa/esp32s3/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/xtensa/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/xtensa/deprecated_include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/lwip/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/lwip/include/apps -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/lwip/include/apps/sntp -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/lwip/lwip/src/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/lwip/port/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/lwip/port/freertos/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/lwip/port/esp32xx/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/lwip/port/esp32xx/include/arch -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/lwip/port/esp32xx/include/sys -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/driver/deprecated -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/driver/i2c/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/driver/touch_sensor/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/driver/twai/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/driver/touch_sensor/esp32s3/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_pm/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_ringbuf/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_driver_gpio/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_driver_pcnt/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_driver_gptimer/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_driver_spi/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_driver_mcpwm/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_driver_ana_cmpr/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_driver_i2s/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_driver_sdmmc/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/sdmmc/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_driver_sdspi/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_driver_sdio/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_driver_dac/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_driver_rmt/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_driver_tsens/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_driver_sdm/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_driver_i2c/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_driver_uart/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/vfs/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_driver_ledc/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_driver_parlio/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_driver_usb_serial_jtag/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/esp_driver_twai/include -IC:/Users/5kyf4ll/esp/v5.5/esp-idf/components/usb/include -ID:/Documentos/GitHub/esp32-keylogger/Receptor/managed_components/espressif__usb_host_hid/include -mlongcalls  -fno-builtin-memcpy -fno-builtin-memset -fno-builtin-bzero -fno-builtin-stpcpy -fno-builtin-strncpy -fdiagnostics-color=always -ffunction-sections -fdata-sections -Wall -Werror=all -Wno-error=unused-function -Wno-error=unused-variable -Wno-error=unused-but-set-variable -Wno-error=deprecated-declarations -Wextra -Wno-error=extra -Wno-unused-parameter -Wno-sign-compare -Wno-enum-conversion -gdwarf-4 -ggdb -Og -fno-shrink-wrap -fmacro-prefix-map=D:/Documentos/GitHub/esp32-keylogger/Receptor=. -fmacro-prefix-map=C:/Users/5kyf4ll/esp/v5.5/esp-idf=/IDF -fstrict-volatile-bitfields -fno-jump-tables -fno-tree-switch-conversion -std=gnu17 -Wno-old-style-declaration -MD -MT esp-idf/main/CMakeFiles/__idf_main.dir/Receptor.c.obj -MF esp-idf\main\CMakeFiles\__idf_main.dir\Receptor.c.obj.d -o esp-idf/main/CMakeFiles/__idf_main.dir/Receptor.c.obj -c D:/Documentos/GitHub/esp32-keylogger/Receptor/main/Receptor.c
+D:/Documentos/GitHub/esp32-keylogger/Receptor/main/Receptor.c: In function 'handle_key':
+D:/Documentos/GitHub/esp32-keylogger/Receptor/main/Receptor.c:148:14: error: 'HID_KEY_KP_0' undeclared (first use in this function); did you mean 'HID_KEY_OPER'?
+  148 |         case HID_KEY_KP_0:     send_char(CMD_NUMPAD_0); return;
+      |              ^~~~~~~~~~~~
+      |              HID_KEY_OPER
+D:/Documentos/GitHub/esp32-keylogger/Receptor/main/Receptor.c:148:14: note: each undeclared identifier is reported only once for each function it appears in
+D:/Documentos/GitHub/esp32-keylogger/Receptor/main/Receptor.c:149:14: error: 'HID_KEY_KP_1' undeclared (first use in this function); did you mean 'HID_KEY_OPER'?
+  149 |         case HID_KEY_KP_1:     send_char(CMD_NUMPAD_1); return;
+      |              ^~~~~~~~~~~~
+      |              HID_KEY_OPER
+D:/Documentos/GitHub/esp32-keylogger/Receptor/main/Receptor.c:150:14: error: 'HID_KEY_KP_2' undeclared (first use in this function); did you mean 'HID_KEY_OPER'?
+  150 |         case HID_KEY_KP_2:     send_char(CMD_NUMPAD_2); return;
+      |              ^~~~~~~~~~~~
+      |              HID_KEY_OPER
+D:/Documentos/GitHub/esp32-keylogger/Receptor/main/Receptor.c:151:14: error: 'HID_KEY_KP_3' undeclared (first use in this function); did you mean 'HID_KEY_OPER'?
+  151 |         case HID_KEY_KP_3:     send_char(CMD_NUMPAD_3); return;
+      |              ^~~~~~~~~~~~
+      |              HID_KEY_OPER
+D:/Documentos/GitHub/esp32-keylogger/Receptor/main/Receptor.c:152:14: error: 'HID_KEY_KP_4' undeclared (first use in this function); did you mean 'HID_KEY_OPER'?
+  152 |         case HID_KEY_KP_4:     send_char(CMD_NUMPAD_4); return;
+      |              ^~~~~~~~~~~~
+      |              HID_KEY_OPER
+D:/Documentos/GitHub/esp32-keylogger/Receptor/main/Receptor.c:153:14: error: 'HID_KEY_KP_5' undeclared (first use in this function); did you mean 'HID_KEY_OPER'?
+  153 |         case HID_KEY_KP_5:     send_char(CMD_NUMPAD_5); return;
+      |              ^~~~~~~~~~~~
+      |              HID_KEY_OPER
+D:/Documentos/GitHub/esp32-keylogger/Receptor/main/Receptor.c:154:14: error: 'HID_KEY_KP_6' undeclared (first use in this function); did you mean 'HID_KEY_OPER'?
+  154 |         case HID_KEY_KP_6:     send_char(CMD_NUMPAD_6); return;
+      |              ^~~~~~~~~~~~
+      |              HID_KEY_OPER
+D:/Documentos/GitHub/esp32-keylogger/Receptor/main/Receptor.c:155:14: error: 'HID_KEY_KP_7' undeclared (first use in this function); did you mean 'HID_KEY_OPER'?
+  155 |         case HID_KEY_KP_7:     send_char(CMD_NUMPAD_7); return;
+      |              ^~~~~~~~~~~~
+      |              HID_KEY_OPER
+D:/Documentos/GitHub/esp32-keylogger/Receptor/main/Receptor.c:156:14: error: 'HID_KEY_KP_8' undeclared (first use in this function); did you mean 'HID_KEY_OPER'?
+  156 |         case HID_KEY_KP_8:     send_char(CMD_NUMPAD_8); return;
+      |              ^~~~~~~~~~~~
+      |              HID_KEY_OPER
+D:/Documentos/GitHub/esp32-keylogger/Receptor/main/Receptor.c:157:14: error: 'HID_KEY_KP_9' undeclared (first use in this function); did you mean 'HID_KEY_OPER'?
+  157 |         case HID_KEY_KP_9:     send_char(CMD_NUMPAD_9); return;
+      |              ^~~~~~~~~~~~
+      |              HID_KEY_OPER
+D:/Documentos/GitHub/esp32-keylogger/Receptor/main/Receptor.c:159:14: error: 'HID_KEY_KP_DOT' undeclared (first use in this function); did you mean 'HID_KEY_PRIOR'?
+  159 |         case HID_KEY_KP_DOT:   send_char(CMD_NUMPAD_DOT);   return;
+      |              ^~~~~~~~~~~~~~
+      |              HID_KEY_PRIOR
+D:/Documentos/GitHub/esp32-keylogger/Receptor/main/Receptor.c:160:14: error: 'HID_KEY_KP_DIVIDE' undeclared (first use in this function); did you mean 'HID_KEY_TILDE'?
+  160 |         case HID_KEY_KP_DIVIDE:send_char(CMD_NUMPAD_DIV);   return;
+      |              ^~~~~~~~~~~~~~~~~
+      |              HID_KEY_TILDE
+D:/Documentos/GitHub/esp32-keylogger/Receptor/main/Receptor.c:161:14: error: 'HID_KEY_KP_MULTIPLY' undeclared (first use in this function)
+  161 |         case HID_KEY_KP_MULTIPLY: send_char(CMD_NUMPAD_MUL);return;
+      |              ^~~~~~~~~~~~~~~~~~~
+D:/Documentos/GitHub/esp32-keylogger/Receptor/main/Receptor.c:162:14: error: 'HID_KEY_KP_SUBTRACT' undeclared (first use in this function)
+  162 |         case HID_KEY_KP_SUBTRACT: send_char(CMD_NUMPAD_SUB);return;
+      |              ^~~~~~~~~~~~~~~~~~~
+D:/Documentos/GitHub/esp32-keylogger/Receptor/main/Receptor.c:163:14: error: 'HID_KEY_KP_ADD' undeclared (first use in this function); did you mean 'HID_KEY_KEYPAD_D'?
+  163 |         case HID_KEY_KP_ADD:      send_char(CMD_NUMPAD_ADD);return;
+      |              ^~~~~~~~~~~~~~
+      |              HID_KEY_KEYPAD_D
+D:/Documentos/GitHub/esp32-keylogger/Receptor/main/Receptor.c:164:14: error: 'HID_KEY_KP_ENTER' undeclared (first use in this function); did you mean 'HID_KEY_ENTER'?
+  164 |         case HID_KEY_KP_ENTER:    send_char(CMD_NUMPAD_ENTER); return;
+      |              ^~~~~~~~~~~~~~~~
+      |              HID_KEY_ENTER
+ninja: build stopped: subcommand failed.

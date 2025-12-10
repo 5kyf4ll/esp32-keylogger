@@ -16,17 +16,47 @@
 // HID key definitions
 #define HID_KEY_ENTER       0x28
 #define HID_KEY_ESCAPE      0x29
-
-
 #define HID_KEY_BACKSPACE   0x2A
 #define HID_KEY_TAB         0x2B
 #define HID_KEY_CAPS_LOCK   0x39
+
+//comandos para ctrl + c / v / x / z
+#define CMD_CTRL_C 0xA1
+#define CMD_CTRL_V 0xA2
+#define CMD_CTRL_X 0xA3
+#define CMD_CTRL_Z 0xA4
 
 // Custom command codes (solo los que no tienen ASCII)
 #define CMD_ESC   0x1B
 #define CMD_TAB   0x09
 #define CMD_CAPS  0x14
 #define CMD_GUI   0x90
+
+#define CMD_ARROW_UP    0xA5   // codigo especial para flecha arriba
+#define CMD_ARROW_DOWN  0xA6   // codigo especial para flecha abajo
+#define CMD_ARROW_LEFT  0xA7   // codigo especial para flecha izquierda
+#define CMD_ARROW_RIGHT 0xA8   // codigo especial para flecha derecha
+
+//numpad
+#define HID_KEY_KP_DIV     0x54
+#define HID_KEY_KP_MULT    0x55
+#define HID_KEY_KP_MINUS   0x56
+#define HID_KEY_KP_PLUS    0x57
+#define HID_KEY_KP_ENTER   0x58
+#define HID_KEY_KP_1       0x59
+#define HID_KEY_KP_2       0x5A
+#define HID_KEY_KP_3       0x5B
+#define HID_KEY_KP_4       0x5C
+#define HID_KEY_KP_5       0x5D
+#define HID_KEY_KP_6       0x5E
+#define HID_KEY_KP_7       0x5F
+#define HID_KEY_KP_8       0x60
+#define HID_KEY_KP_9       0x61
+#define HID_KEY_KP_0       0x62
+#define HID_KEY_KP_DOT     0x63
+#define HID_KEY_KP_EQUAL   0x67
+#define HID_KEY_NUM_LOCK   0x53
+
 
 // Cola para mantener el orden de caracteres enviados por UART
 static QueueHandle_t uart_queue;
@@ -95,6 +125,26 @@ static inline void send_char(char c) {
 
 // ===== Procesamiento de teclas =====
 static void handle_key(uint8_t modifier, uint8_t key_code) {
+
+    bool ctrl = (modifier & (HID_LEFT_CONTROL | HID_RIGHT_CONTROL)) !=0;
+
+    // ctrl combos
+    if(ctrl){
+        switch (key_code){
+            case HID_KEY_C: send_char(CMD_CTRL_C); return;
+            case HID_KEY_V: send_char(CMD_CTRL_V); return;
+            case HID_KEY_X: send_char(CMD_CTRL_X); return;
+            case HID_KEY_Z: send_char(CMD_CTRL_Z); return;
+        }
+    }
+
+    // arrows
+    if (key_code == HID_KEY_UP)    { send_char(CMD_ARROW_UP); return; }
+    if (key_code == HID_KEY_DOWN)  { send_char(CMD_ARROW_DOWN); return; }
+    if (key_code == HID_KEY_LEFT)  { send_char(CMD_ARROW_LEFT); return; }
+    if (key_code == HID_KEY_RIGHT) { send_char(CMD_ARROW_RIGHT); return; }
+
+    // normal specials
     switch(key_code) {
         case HID_KEY_ESCAPE:    send_char(CMD_ESC); return;
         case HID_KEY_TAB:       send_char(CMD_TAB); return;
@@ -103,7 +153,33 @@ static void handle_key(uint8_t modifier, uint8_t key_code) {
         case HID_KEY_ENTER:     send_char('\n');    return;
     }
 
-    // AltGr handling
+    // ======== NUMPAD ========
+    switch (key_code) {
+
+        case HID_KEY_KP_0: send_char('0'); return;
+        case HID_KEY_KP_1: send_char('1'); return;
+        case HID_KEY_KP_2: send_char('2'); return;
+        case HID_KEY_KP_3: send_char('3'); return;
+        case HID_KEY_KP_4: send_char('4'); return;
+        case HID_KEY_KP_5: send_char('5'); return;
+        case HID_KEY_KP_6: send_char('6'); return;
+        case HID_KEY_KP_7: send_char('7'); return;
+        case HID_KEY_KP_8: send_char('8'); return;
+        case HID_KEY_KP_9: send_char('9'); return;
+
+        case HID_KEY_KP_DIV:   send_char('/'); return;
+        case HID_KEY_KP_MULT:  send_char('*'); return;
+        case HID_KEY_KP_MINUS: send_char('-'); return;
+        case HID_KEY_KP_PLUS:  send_char('+'); return;
+        case HID_KEY_KP_DOT:   send_char('.'); return;
+        case HID_KEY_KP_EQUAL: send_char('='); return;
+
+        case HID_KEY_KP_ENTER: send_char('\n'); return;
+
+        case HID_KEY_NUM_LOCK: return;
+    }
+
+    // AltGr
     if ((modifier & HID_RIGHT_ALT) != 0) {
         for (int i = 0; i < altgr_table_size; i++) {
             if (key_code == altgr_table[i].keycode) {
@@ -113,13 +189,14 @@ static void handle_key(uint8_t modifier, uint8_t key_code) {
         }
     }
 
-    // Normal key handling
+    // ASCII normal
     if (key_code < 57) {
         bool shift = (modifier & (HID_LEFT_SHIFT | HID_RIGHT_SHIFT)) != 0;
         char c = keycode2ascii[key_code][shift ? 1 : 0];
         if (c) send_char(c);
     }
 }
+
 
 static void process_keys(hid_keyboard_input_report_boot_t *report) {
     static hid_keyboard_input_report_boot_t prev_report = {0};
