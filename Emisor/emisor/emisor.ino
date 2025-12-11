@@ -302,27 +302,92 @@ void setup() {
 // =====================================================================
 
 void loop() {
-  if (Serial1.available()) {
-    uint8_t c = Serial1.read();
+    while (Serial1.available()) {
 
-    if (isSpecialCommand(c)) {
-      handleSpecialCommand(c);
+        uint8_t c = Serial1.read();
+
+        // Debug
+        Serial.print("Recibido del receptor: 0x");
+        Serial.print(c, HEX);
+        Serial.print(" -> '");
+        if (c >= 32 && c <= 126) Serial.print((char)c);
+        else Serial.print(".");
+        Serial.println("'");
+
+        // Comandos especiales
+        if (isSpecialCommand(c)) {
+            handleSpecialCommand(c);
+            continue;
+        }
+
+        // ============================================
+        //                 Numpad
+        // ============================================
+
+        if (c == '.') {
+            Keyboard.write('.');
+            sendLater(".");
+            continue;
+        }
+
+        if (c == '*') {
+            Keyboard.press(KEY_KP_ASTERISK);
+            Keyboard.release(KEY_KP_ASTERISK);
+            sendLater("*");
+            continue;
+        }
+
+        if (c == '-') {
+            Keyboard.press(KEY_KP_MINUS);
+            Keyboard.release(KEY_KP_MINUS);
+            sendLater("-");
+            continue;
+        }
+
+        if (c == '+') {
+            Keyboard.press(KEY_KP_PLUS);
+            Keyboard.release(KEY_KP_PLUS);
+            sendLater("+");
+            continue;
+        }
+        if (c == '/') {
+            Keyboard.press(KEY_KP_SLASH);
+            Keyboard.release(KEY_KP_SLASH);
+            sendLater("/");
+            continue;
+        }
+        if (c == '"') {
+            Keyboard.press(KEY_LEFT_SHIFT);
+            Keyboard.press('2');
+            Keyboard.release('2');
+            Keyboard.release(KEY_LEFT_SHIFT);
+            sendLater("\"");
+            continue;
+        }
+
+
+        // ============================================
+        //                  AltGr @
+        // ============================================
+
+        if (c == '@') {
+            Keyboard.press(KEY_RIGHT_ALT);
+            Keyboard.press('q');
+            Keyboard.release('q');
+            Keyboard.release(KEY_RIGHT_ALT);
+            sendLater("@");
+            continue;
+        }
+
+        // ============================================
+        //            ASCII normal restante
+        // ============================================
+        if (c >= 0x20 && c <= 0x7E) {
+            Keyboard.write((char)c);
+            sendLater(String((char)c));
+        }
     }
 
-    else if (c >= 0x20 && c <= 0x7E) {
-
-      if (c == '@') {
-        Keyboard.press(KEY_RIGHT_ALT);
-        Keyboard.press('q');
-        Keyboard.release('q');
-        Keyboard.release(KEY_RIGHT_ALT);
-        sendLater("@");
-      } else {
-        Keyboard.write((char)c);
-        sendLater(String((char)c));
-      }
-    }
-  }
-
-  delay(1);
+    delay(1);
 }
+
