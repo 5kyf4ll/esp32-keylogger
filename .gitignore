@@ -1,23 +1,21 @@
-# Archivos binarios y carpetas de compilación
+# Ignorar carpetas de compilación
 **/build/
 **/bootloader_build/
 
-# Archivos binarios generados
+# Ignorar archivos generados
 **/*.elf
 **/*.bin
 **/*.hex
 **/*.map
 **/*.img
 
-# Configuración local de VSCode
-.vscode/
-
-# Configuración sensible de ESP-IDF
+# Ignorar configuración de proyecto local
 **/sdkconfig
 
-# Archivos temporales
+# Archivos temporales de editor
+.vscode/
 *.log
 *.tmp
 *.swp
 *.swo
-*.DS_Store
+.DS_Store
