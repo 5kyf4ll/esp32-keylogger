@@ -8,36 +8,38 @@
 #include "usb/hid_host.h"
 #include "usb/hid_usage_keyboard.h"
 
+// Configuración de la UART: pines TX/RX, puerto y tamaño de buffer
 #define TX_PIN 17
 #define RX_PIN 18
 #define UART_PORT UART_NUM_2
 #define BUF_SIZE 256
 
-// HID key definitions
+// Definiciones de teclas HID básicas
 #define HID_KEY_ENTER       0x28
 #define HID_KEY_ESCAPE      0x29
 #define HID_KEY_BACKSPACE   0x2A
 #define HID_KEY_TAB         0x2B
 #define HID_KEY_CAPS_LOCK   0x39
 
-//comandos para ctrl + c / v / x / z
+// Combinaciones Ctrl + C/V/X/Z
 #define CMD_CTRL_C 0xA1
 #define CMD_CTRL_V 0xA2
 #define CMD_CTRL_X 0xA3
 #define CMD_CTRL_Z 0xA4
 
-// Custom command codes (solo los que no tienen ASCII)
+// Comandos especiales no ASCII
 #define CMD_ESC   0x1B
 #define CMD_TAB   0x09
 #define CMD_CAPS  0x14
 #define CMD_GUI   0x90
 
-#define CMD_ARROW_UP    0xA5   // codigo especial para flecha arriba
-#define CMD_ARROW_DOWN  0xA6   // codigo especial para flecha abajo
-#define CMD_ARROW_LEFT  0xA7   // codigo especial para flecha izquierda
-#define CMD_ARROW_RIGHT 0xA8   // codigo especial para flecha derecha
+// Flechas de dirección
+#define CMD_ARROW_UP    0xA5
+#define CMD_ARROW_DOWN  0xA6
+#define CMD_ARROW_LEFT  0xA7
+#define CMD_ARROW_RIGHT 0xA8
 
-//numpad
+// Teclado numérico (numpad)
 #define HID_KEY_KP_DIV     0x54
 #define HID_KEY_KP_MULT    0x55
 #define HID_KEY_KP_MINUS   0x56
@@ -57,23 +59,37 @@
 #define HID_KEY_KP_EQUAL   0x67
 #define HID_KEY_NUM_LOCK   0x53
 
+// Teclas de función F1–F12
+#define CMD_F1  0xC1
+#define CMD_F2  0xC2
+#define CMD_F3  0xC3
+#define CMD_F4  0xC4
+#define CMD_F5  0xC5
+#define CMD_F6  0xC6
+#define CMD_F7  0xC7
+#define CMD_F8  0xC8
+#define CMD_F9  0xC9
+#define CMD_F10 0xCA
+#define CMD_F11 0xCB
+#define CMD_F12 0xCC
 
-// Cola para mantener el orden de caracteres enviados por UART
+// Cola para mantener el orden de los caracteres enviados por UART
 static QueueHandle_t uart_queue;
 
-// AltGr special character mapping
+// Estructura de mapeo de caracteres AltGr
 typedef struct {
     uint8_t keycode;
     char symbol;
 } altgr_map_t;
 
+// Tabla de AltGr
 static const altgr_map_t altgr_table[] = {
     {HID_KEY_Q, '@'},
-    // Agrega aquí más símbolos según tu layout
+    // Se pueden agregar más símbolos según el layout
 };
 static const int altgr_table_size = sizeof(altgr_table) / sizeof(altgr_map_t);
 
-// Basic HID to ASCII mapping (without AltGr)
+// Tabla básica de mapeo HID a ASCII (sin AltGr)
 static const uint8_t keycode2ascii[57][2] = {
     {0, 0}, {0, 0}, {0, 0}, {0, 0},
     {'a','A'},{'b','B'},{'c','C'},{'d','D'},{'e','E'},{'f','F'},
@@ -89,7 +105,7 @@ static const uint8_t keycode2ascii[57][2] = {
     {'`','~'},{',','<'},{'.','>'},{'/','?'}
 };
 
-// ===== UART Inicialización =====
+// ===== Inicialización UART =====
 static void uart_init(void) {
     const uart_config_t uart_config = {
         .baud_rate = 9600,
@@ -106,29 +122,29 @@ static void uart_init(void) {
     uart_queue = xQueueCreate(64, sizeof(char));
 }
 
-// ===== Tarea de envío UART ordenado =====
+// ===== Tarea de envío UART =====
 static void uart_task(void *arg) {
     char c;
     while (1) {
         if (xQueueReceive(uart_queue, &c, portMAX_DELAY)) {
-            uart_write_bytes(UART_PORT, &c, 1);
+            uart_write_bytes(UART_PORT, &c, 1); // Enviar caracter
         }
     }
 }
 
-// ===== Encolar salida UART =====
+// ===== Encolar caracter para UART =====
 static inline void send_char(char c) {
     if (uart_queue) {
         xQueueSend(uart_queue, &c, portMAX_DELAY);
     }
 }
 
-// ===== Procesamiento de teclas =====
+// ===== Procesar tecla individual =====
 static void handle_key(uint8_t modifier, uint8_t key_code) {
 
     bool ctrl = (modifier & (HID_LEFT_CONTROL | HID_RIGHT_CONTROL)) !=0;
 
-    // ctrl combos
+    // Combinaciones Ctrl
     if(ctrl){
         switch (key_code){
             case HID_KEY_C: send_char(CMD_CTRL_C); return;
@@ -138,13 +154,13 @@ static void handle_key(uint8_t modifier, uint8_t key_code) {
         }
     }
 
-    // arrows
+    // Flechas de dirección
     if (key_code == HID_KEY_UP)    { send_char(CMD_ARROW_UP); return; }
     if (key_code == HID_KEY_DOWN)  { send_char(CMD_ARROW_DOWN); return; }
     if (key_code == HID_KEY_LEFT)  { send_char(CMD_ARROW_LEFT); return; }
     if (key_code == HID_KEY_RIGHT) { send_char(CMD_ARROW_RIGHT); return; }
 
-    // normal specials
+    // Teclas especiales normales
     switch(key_code) {
         case HID_KEY_ESCAPE:    send_char(CMD_ESC); return;
         case HID_KEY_TAB:       send_char(CMD_TAB); return;
@@ -153,9 +169,8 @@ static void handle_key(uint8_t modifier, uint8_t key_code) {
         case HID_KEY_ENTER:     send_char('\n');    return;
     }
 
-    // ======== NUMPAD ========
+    // ===== Teclado numérico =====
     switch (key_code) {
-
         case HID_KEY_KP_0: send_char('0'); return;
         case HID_KEY_KP_1: send_char('1'); return;
         case HID_KEY_KP_2: send_char('2'); return;
@@ -173,17 +188,31 @@ static void handle_key(uint8_t modifier, uint8_t key_code) {
         case HID_KEY_KP_PLUS:  send_char('+'); return;
         case HID_KEY_KP_DOT:   send_char('.'); return;
         case HID_KEY_KP_EQUAL: send_char('='); return;
-
         case HID_KEY_KP_ENTER: send_char('\n'); return;
+        case HID_KEY_NUM_LOCK: return; // No hace nada
+    }
 
-        case HID_KEY_NUM_LOCK: return;
+    // F1 – F12
+    switch(key_code) {
+        case HID_KEY_F1:  send_char(CMD_F1);  return;
+        case HID_KEY_F2:  send_char(CMD_F2);  return;
+        case HID_KEY_F3:  send_char(CMD_F3);  return;
+        case HID_KEY_F4:  send_char(CMD_F4);  return;
+        case HID_KEY_F5:  send_char(CMD_F5);  return;
+        case HID_KEY_F6:  send_char(CMD_F6);  return;
+        case HID_KEY_F7:  send_char(CMD_F7);  return;
+        case HID_KEY_F8:  send_char(CMD_F8);  return;
+        case HID_KEY_F9:  send_char(CMD_F9);  return;
+        case HID_KEY_F10: send_char(CMD_F10); return;
+        case HID_KEY_F11: send_char(CMD_F11); return;
+        case HID_KEY_F12: send_char(CMD_F12); return;
     }
 
     // AltGr
     if ((modifier & HID_RIGHT_ALT) != 0) {
         for (int i = 0; i < altgr_table_size; i++) {
             if (key_code == altgr_table[i].keycode) {
-                send_char(altgr_table[i].symbol);
+                send_char(altgr_table[i].symbol); // Enviar símbolo AltGr
                 return;
             }
         }
@@ -193,18 +222,18 @@ static void handle_key(uint8_t modifier, uint8_t key_code) {
     if (key_code < 57) {
         bool shift = (modifier & (HID_LEFT_SHIFT | HID_RIGHT_SHIFT)) != 0;
         char c = keycode2ascii[key_code][shift ? 1 : 0];
-        if (c) send_char(c);
+        if (c) send_char(c); // Enviar caracter normal
     }
 }
 
-
+// ===== Procesar reporte completo de teclado =====
 static void process_keys(hid_keyboard_input_report_boot_t *report) {
     static hid_keyboard_input_report_boot_t prev_report = {0};
     static bool gui_pressed = false;
 
     uint8_t mods = report->modifier.val;
 
-    // Detect GUI (Windows key)
+    // Detectar tecla GUI (Windows)
     if ((mods & (HID_LEFT_GUI | HID_RIGHT_GUI)) && !gui_pressed) {
         send_char(CMD_GUI);
         gui_pressed = true;
@@ -212,7 +241,7 @@ static void process_keys(hid_keyboard_input_report_boot_t *report) {
         gui_pressed = false;
     }
 
-    // Process normal keys (keydown detection)
+    // Procesar teclas presionadas (keydown)
     for (int i = 0; i < HID_KEYBOARD_KEY_MAX; i++) {
         uint8_t key = report->key[i];
         if (key > HID_KEY_ERROR_UNDEFINED) {
@@ -239,10 +268,11 @@ static void hid_host_interface_callback(hid_host_device_handle_t dev_handle,
         size_t len = 0;
         hid_host_device_get_raw_input_report_data(dev_handle, data, sizeof(data), &len);
         if (len >= sizeof(hid_keyboard_input_report_boot_t))
-            process_keys((hid_keyboard_input_report_boot_t *)data);
+            process_keys((hid_keyboard_input_report_boot_t *)data); // Procesar entrada
     }
 }
 
+// ===== Evento de dispositivo USB =====
 void hid_host_device_event(hid_host_device_handle_t hid_dev,
                            const hid_host_driver_event_t event,
                            void *arg) {
@@ -251,8 +281,8 @@ void hid_host_device_event(hid_host_device_handle_t hid_dev,
             .callback = hid_host_interface_callback,
             .callback_arg = NULL
         };
-        hid_host_device_open(hid_dev, &dev_config);
-        hid_host_device_start(hid_dev);
+        hid_host_device_open(hid_dev, &dev_config); // Abrir dispositivo
+        hid_host_device_start(hid_dev);             // Iniciar dispositivo
     }
 }
 
@@ -271,17 +301,18 @@ static void usb_task(void *arg) {
     };
     hid_host_install(&hid_cfg);
 
+    // Manejar eventos USB continuamente
     while (1) {
         uint32_t events;
         usb_host_lib_handle_events(portMAX_DELAY, &events);
     }
 }
 
-// ===== app_main =====
+// ===== Función principal =====
 void app_main(void) {
-    uart_init();
+    uart_init(); // Inicializar UART
     printf("UART initialized on TX:%d, RX:%d\n", TX_PIN, RX_PIN);
-    xTaskCreate(usb_task, "usb_task", 4096, NULL, 5, NULL);
-    xTaskCreate(uart_task, "uart_task", 2048, NULL, 4, NULL);  // nueva tarea para envío ordenado
-    while (1) vTaskDelay(pdMS_TO_TICKS(1000));
+    xTaskCreate(usb_task, "usb_task", 4096, NULL, 5, NULL);  // Tarea USB
+    xTaskCreate(uart_task, "uart_task", 2048, NULL, 4, NULL);  // Tarea UART
+    while (1) vTaskDelay(pdMS_TO_TICKS(1000)); // Mantener main vivo
 }
