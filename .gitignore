@@ -1,21 +1,12 @@
-# Ignorar carpetas de compilación
+# Carpeta de compilación
 **/build/
-**/bootloader_build/
 
-# Ignorar archivos generados
-**/*.elf
-**/*.bin
-**/*.hex
-**/*.map
-**/*.img
+# Dependencias gestionadas por ESP-IDF
+**/managed_components/
 
-# Ignorar configuración de proyecto local
-**/sdkconfig
+# Configuración del editor dentro de Receptor
+Receptor/.vscode/
 
-# Archivos temporales de editor
-.vscode/
-*.log
-*.tmp
-*.swp
-*.swo
-.DS_Store
+# Configuración local de SDK
+Receptor/sdkconfig
+Receptor/sdkconfig.old
