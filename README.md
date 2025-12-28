@@ -30,7 +30,7 @@ Para la comunicación entre el **receptor** y el **emisor**, se usa una conexió
 | GPIO17 (TX)          | GPIO18 (RX)       |
 | GPIO18 (RX)          | GPIO17 (TX)       |
 | GND                  | GND               |
-<img width="989" height="754" alt="image" src="https://github.com/user-attachments/assets/9ef88235-eeed-4213-b278-3b0f82be8a5a" />
+<img width="1107" height="815" alt="image" src="https://github.com/user-attachments/assets/128efb56-557a-468a-b991-7b15de718025" />
 
 ---
 
