@@ -17,7 +17,7 @@ El sistema captura los eventos HID del teclado real mediante un **ESP32-S3 recep
 ---
 
 ## Diagrama de conexión
-![diagrama](https://github.com/user-attachments/assets/3898985c-a1cf-4c78-8c4a-816125e83890)
+![mmmm](https://github.com/user-attachments/assets/7c2f380b-b254-454c-b580-6182f637d58e)
 
 ---
 
