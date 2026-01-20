@@ -20,7 +20,9 @@ El sistema captura los eventos HID del teclado real mediante un **ESP32-S3 recep
 ---
 
 ## Diagrama de conexión
-![mmmm](https://github.com/user-attachments/assets/7c2f380b-b254-454c-b580-6182f637d58e)
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/7c2f380b-b254-454c-b580-6182f637d58e" width="400">
+</p>
 
 ---
 
@@ -33,7 +35,10 @@ Para la comunicación entre el **receptor** y el **emisor**, se usa una conexió
 | GPIO17 (TX)          | GPIO18 (RX)       |
 | GPIO18 (RX)          | GPIO17 (TX)       |
 | GND                  | GND               |
-<img width="1107" height="815" alt="image" src="https://github.com/user-attachments/assets/128efb56-557a-468a-b991-7b15de718025" />
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/128efb56-557a-468a-b991-7b15de718025" width="600">
+</p>
 
 ---
 
