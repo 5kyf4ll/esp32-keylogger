@@ -2,6 +2,9 @@
 
 > Proyecto educativo y de laboratorio: demostrador de captura y reenvio de eventos de teclado usando 2 ESP32-S3 y un bot de Telegram.  
 > Diseño pensado para aprendizaje, pruebas controladas y auditoría interna en entornos autorizados.
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/8517655d-2b2a-4c60-b36f-e852813cddd9" width="400">
+</p>
 
 ---
 
@@ -72,8 +75,11 @@ El emisor enviará cada tecla capturada al chat configurado.
 ---
 
 ## Video demostrativo
-<a href="https://youtu.be/_ogxft_biew" target="_blank">Mira el tutorial en YouTube</a>
-(Me falta actualizar el video)
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=8ONeW38sM1c">
+    <img src="https://img.youtube.com/vi/8ONeW38sM1c/0.jpg" width="600">
+  </a>
+</p>
 ---
 
 ## Aviso importante - Uso responsable
